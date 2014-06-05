@@ -15,6 +15,11 @@ class MyOVBox(OVBox):
         self.stimCode = None
         self.stimNum = None
         self.trial = None
+        self.cursor = 0
+        self.subCount = 0
+        self.count = 0
+        self.final = self.doCount
+        self.sequence = self.randomSequence()
         for i in range(len(stimuliName)):
             wf.append(wave.open(stimuliName[i], "rb"))
             stream.append(p.open(format=p.get_format_from_width(wf[i].getsampwidth()),
@@ -22,11 +27,6 @@ class MyOVBox(OVBox):
                                  rate = wf[i].getframerate(),
                                  output=True))
 
-        self.sequence = self.randomSequence()
-        self.cursor = 0
-        self.subCount = 0
-        self.second = 0
-        self.final = self.doCount
 
     def initialize(self):
         self.stimLabel = self.setting["Stimulation"]
@@ -61,19 +61,19 @@ class MyOVBox(OVBox):
         self.output[0].append(stimSet)
 
     def doCount(self):
-        self.second += 1
+        self.count += 1
 
     def doSubCount(self):
         self.subCount += 1
 
     def process(self):
         #TODO playing sound frequencies should be obtained from settings
-        if self.second and self.second % self.duration == 0:
+        if self.count and self.count % self.duration == 0:
             self.generateStimulation()
             stimuNum = self.sequence[self.cursor]
             data = wf[stimuNum].readframes(CHUNK)
             self.cursor += 1
-            self.second = 0
+            self.count = 0
             self.final = self.doSubCount
             while data:
                 stream[stimuNum].write(data)
@@ -90,4 +90,3 @@ class MyOVBox(OVBox):
         self.final()
 
 box = MyOVBox()
-        
