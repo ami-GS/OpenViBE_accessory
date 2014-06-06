@@ -1,8 +1,10 @@
 import pyaudio
 import wave
 import random
+from threading import Thread
+import time
 
-CHUNK = 1024
+CHUNK = 4096
 p = pyaudio.PyAudio()
 wf = []
 stream = []
@@ -18,8 +20,8 @@ class MyOVBox(OVBox):
         self.cursor = 0
         self.subCount = 0
         self.count = 0
+        self.sequence = []
         self.final = self.doCount
-        self.sequence = self.randomSequence()
         for i in range(len(stimuliName)):
             wf.append(wave.open(stimuliName[i], "rb"))
             stream.append(p.open(format=p.get_format_from_width(wf[i].getsampwidth()),
@@ -27,13 +29,16 @@ class MyOVBox(OVBox):
                                  rate = wf[i].getframerate(),
                                  output=True))
 
-
     def initialize(self):
         self.stimLabel = self.setting["Stimulation"]
         self.duration = int(self.setting["oneStimulusDuration"])
         self.interval = float(self.setting["changingInterval"])
-        self.stimNum = self.setting["stimuliNum"]
-        self.trial = self.setting["trialsPerStimulus"]
+        self.stimNum = int(self.setting["stimuliNum"])
+        self.stimSet = ["OVTK_StimulationId_Label_0"+str(i) for i in range(self.stimNum+1)]
+        print self.stimSet
+        self.trial = int(self.setting["trialsPerStimulus"])
+        self.sequence = self.randomSequence()
+        print self.sequence
         self.stimCode = OpenViBE_stimulation[self.stimLabel]
         self.output[0].append(OVStimulationHeader(0.,0.))
         return
@@ -66,21 +71,33 @@ class MyOVBox(OVBox):
     def doSubCount(self):
         self.subCount += 1
 
+    def threadControl(self):
+        for i in range(5):
+            print(i)
+
+    def makeSound(self, stimuNum):
+        data = wf[stimuNum].readframes(CHUNK)
+        self.cursor += 1
+        while data:
+            stream[stimuNum].write(data)
+            data = wf[stimuNum].readframes(CHUNK)
+        else:
+            #open again
+            wf[stimuNum] = wave.open(stimuliName[stimuNum], "rb")
+        
+        
+
     def process(self):
         #TODO playing sound frequencies should be obtained from settings
         if self.count and self.count % self.duration == 0:
             self.generateStimulation()
             stimuNum = self.sequence[self.cursor]
-            data = wf[stimuNum].readframes(CHUNK)
-            self.cursor += 1
             self.count = 0
             self.final = self.doSubCount
-            while data:
-                stream[stimuNum].write(data)
-                data = wf[stimuNum].readframes(CHUNK)
-            else:
-                #open again
-                wf[stimuNum] = wave.open(stimuliName[stimuNum], "rb")
+            self.t = Thread(target=self.makeSound, args=(stimuNum,))
+            self.t.start()
+            self.t.join() 
+            #I noticed this is nonsens to use thread, because this above line stops everything.
 
         elif self.subCount == self.interval:
             self.generateStimulation()
