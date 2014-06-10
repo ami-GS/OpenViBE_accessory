@@ -6,12 +6,10 @@ p = pyaudio.PyAudio()
 wf = []
 stream = []
 CHUNK = 4096
-#stimuliName = ["tm2_switch000.wav", "tm2_switch001.wav",
-#               "tm2_swing002.wav", "tm2_swing004.wav"]
 stimuliName = ["audio/lu.wav", "audio/ru.wav", "audio/rd.wav", "audio/ld.wav"]
 content = []
 
-for i in range(4):
+for i in range(len(stimuliName)):
     wf.append(wave.open(stimuliName[i], "rb"))
     stream.append(p.open(format=p.get_format_from_width(wf[i].getsampwidth()),
                          channels = wf[i].getnchannels(),
