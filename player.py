@@ -3,6 +3,7 @@ import wave
 import random
 import subprocess
 import socket
+import json
 
 subprocess.Popen(["python", "../../OpenViBE_accessory/playSound_udp.py"])
 udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -29,7 +30,11 @@ class MyOVBox(OVBox):
         self.stimLabels = ["OVTK_StimulationId_Label_0"+str(i) for i in range(self.stimNum+1)]
         self.trial = int(self.setting["trialsPerStimulus"])
         self.untilStart = int(self.setting["untilStart"])
+        self.allTrial = self.Num * self.trial
+        seqFileName = self.setting["Random sequence file path"] #path
         self.sequence = self.randomSequence()
+        with open(seqFileName, "w") as f:
+            f.write(json.dumps(self.sequence)[1:-1])
         self.stimCodes = [OpenViBE_stimulation[self.stimLabels[i]] for i in range(self.stimNum+1)]
         self.output[0].append(OVStimulationHeader(0.,0.))
         return
@@ -75,13 +80,13 @@ class MyOVBox(OVBox):
                 self.final = self.doSubCount
                 #temporaly, this uses subprocess.Popen to reduce (maybe visually) latency
                 udp.sendto(str(stimuNum-1), ("127.0.0.1", 12345))
-
             elif self.subCount == self.interval:
                 #redundant stimulus to makesure the start of new tartget
                 self.generateStimulation(0) 
                 self.final = self.doCount
                 self.subCount = 0
-                
+        elif self.cursor >= self.allTeial:
+            self.output[1].append("Some stimuli to stop processing.") #TODO
         self.final()
 
 box = MyOVBox()
