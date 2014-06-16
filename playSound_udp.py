@@ -6,7 +6,7 @@ p = pyaudio.PyAudio()
 wf = []
 stream = []
 CHUNK = 4096
-stimuliName = ["audio/lu.wav", "audio/ru.wav", "audio/rd.wav", "audio/ld.wav"]
+stimuliName = ["audio/lu.wav", "audio/ld.wav", "audio/rd.wav", "audio/ru.wav"]
 content = []
 
 for i in range(len(stimuliName)):
