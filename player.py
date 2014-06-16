@@ -7,7 +7,7 @@ import json
 
 subprocess.Popen(["python", "../../OpenViBE_accessory/playSound_udp.py"])
 udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-stimuliName = ["audio/lu.wav", "audio/ru.wav", "audio/rd.wav", "audio/ld.wav"]
+stimuliName = ["audio/lu.wav", "audio/ld.wav", "audio/rd.wav", "audio/ru.wav"]
 
 class MyOVBox(OVBox):
     def __init__(self):
