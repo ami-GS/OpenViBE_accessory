@@ -9,7 +9,7 @@ class UDPSend(OVBox):
 
     def initialize(self):
         self.host = self.setting["Host name"]
-        self.port = self.setting["Port"]
+        self.port = int(self.setting["Port"])
 
     def process(self):
         self.socket.sendto("hello", (self.host, self.port))
